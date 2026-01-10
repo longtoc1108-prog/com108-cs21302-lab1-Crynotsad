@@ -1,0 +1,40 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Kiem tra loi cu phap
+      id: kiem-tra-loi-cu-phap
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Kiem tra loi cu phap
+        setup-command: ''
+        command: gcc -Wall -Wextra hello.c -o hello
+        timeout: 10
+        max-score: 5
+    - name: Kiem tra thong tin sinh vien
+      id: kiem-tra-thong-tin-sinh-vien
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Kiem tra thong tin sinh vien
+        setup-command: ''
+        command: grep -i "MSSV" hello.c && grep -i "Họ và tên" hello.c
+        timeout: 10
+        max-score: 3
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        KIEM-TRA-LOI-CU-PHAP_RESULTS: "${{steps.kiem-tra-loi-cu-phap.outputs.result}}"
+        KIEM-TRA-THONG-TIN-SINH-VIEN_RESULTS: "${{steps.kiem-tra-thong-tin-sinh-vien.outputs.result}}"
+      with:
+        runners: kiem-tra-loi-cu-phap,kiem-tra-thong-tin-sinh-vien
